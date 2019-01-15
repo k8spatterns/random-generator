@@ -1,4 +1,4 @@
-package meetup;
+package io.k8spatterns.examples;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package meetup;
+package io.k8spatterns.examples;
 
 import java.util.*;
 
@@ -24,7 +24,7 @@ public class RandomNumberEndpoint {
      */
     @RequestMapping(value = "/", produces = "application/json")
     public Map getRandomNumber() {
-        Map ret = new HashMap();
+        Map<String, Object> ret = new HashMap<>();
         ret.put("random", random.nextInt());
         ret.put("id", id.toString());
         return ret;
