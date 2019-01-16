@@ -29,7 +29,7 @@ public class RandomNumberEndpoint {
         ret.put("id", id.toString());
         String environment = System.getenv("RANDOM_GENERATOR_ENV");
         if (environment != null) {
-            ret.put("environemnt", environment);
+            ret.put("environment", environment);
         }
         return ret;
     }
