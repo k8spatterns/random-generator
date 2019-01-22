@@ -27,9 +27,9 @@ public class RandomNumberEndpoint {
         Map<String, Object> ret = new HashMap<>();
         ret.put("random", random.nextInt());
         ret.put("id", id.toString());
-        String environment = System.getenv("RANDOM_GENERATOR_ENV");
+        String environment = System.getenv("BUILD_TYPE");
         if (environment != null) {
-            ret.put("environment", environment);
+            ret.put("build-type", environment);
         }
         return ret;
     }
