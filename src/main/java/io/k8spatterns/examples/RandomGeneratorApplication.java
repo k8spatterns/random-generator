@@ -119,11 +119,6 @@ public class RandomGeneratorApplication {
         // Create return value
         ret.put("random", randomValue);
         ret.put("id", id.toString());
-        ret.put("version", version);
-        if (buildType != null) {
-            ret.put("build-type", buildType);
-        }
-        ret.put("pattern", patternName);
 
         // Write out the value to a file
         logRandomValue(randomValue);
@@ -156,7 +151,18 @@ public class RandomGeneratorApplication {
     public void toggleReadiness() throws IOException {
         ready(!READY_FILE.exists());
     }
-    
+
+
+    /**
+     * Get some info
+     * @return overall information including version, and id
+     */
+    @RequestMapping(value = "/info", produces = "application/json")
+    public Map info() {
+        return getSysinfo();
+    }
+
+
     // ================================================================================================
     // Burn down some CPU time, which can be used to increase the CPU load on
     // the system
@@ -196,6 +202,12 @@ public class RandomGeneratorApplication {
         ret.put("memory.used", rt.totalMemory() / mb);
         ret.put("memory.free", rt.freeMemory() / mb);
         ret.put("cpu.procs", rt.availableProcessors());
+        ret.put("id", id);
+        ret.put("version", version);
+        ret.put("pattern", patternName);
+        if (buildType != null) {
+            ret.put("build-type", buildType);
+        }
         return ret;
     }
 

@@ -61,4 +61,13 @@
 
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>2</id>
+      <properties>
+        <app.version>2.0</app.version>
+      </properties>
+    </profile>
+  </profiles>
 </project>
