@@ -15,13 +15,16 @@
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>2.1.2.RELEASE</version>
-    <relativePath/> <!-- lookup parent from repository -->
+    <relativePath/>
   </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.8</java.version>
+    <app.version>${project.version}</app.version>
+    <docker.name>k8spatterns/random-generator:${app.version}</docker.name>
+    <docker.verbose>true</docker.verbose>
   </properties>
 
   <dependencies>
@@ -37,6 +40,13 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -44,11 +54,9 @@
       </plugin>
 
       <plugin>
-				<!-- Plugin for generating default K8s resource descriptors.
-				     See https://maven.fabric8.io/ for details -->
-        <groupId>io.fabric8</groupId>
-        <artifactId>fabric8-maven-plugin</artifactId>
-        <version>3.5.42</version>
+				<groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.28.0</version>
       </plugin>
 
     </plugins>
