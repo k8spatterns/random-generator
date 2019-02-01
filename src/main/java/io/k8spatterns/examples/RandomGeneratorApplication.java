@@ -15,11 +15,13 @@ import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.event.EventListener;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,7 +32,7 @@ import static java.nio.file.StandardOpenOption.CREATE;
 
 @SpringBootApplication
 @RestController
-public class RandomGeneratorApplication {
+public class RandomGeneratorApplication implements ApplicationContextAware  {
 
     // File to indicate readiness
     private static File READY_FILE = new File("/random-generator-ready");
@@ -66,11 +68,23 @@ public class RandomGeneratorApplication {
     private static Log log = LogFactory.getLog(RandomGeneratorApplication.class);
 
     // Health toggle
-    @Autowired
     private HealthToggleIndicator healthToggle;
+
+    // Application context used for shutdown the app
+    private ApplicationContext applicationContext;
+
+
+    public RandomGeneratorApplication(HealthToggleIndicator healthToggle) {
+        this.healthToggle = healthToggle;
+    }
 
     // ======================================================================
     public static void main(String[] args) throws InterruptedException, IOException {
+        // Check for a postStart generated file and log if it found one
+        waitForPostStart();
+
+        // shutdownHook for dealing with signals
+        addShutdownHook();
 
         // Ensure that the ready flag is not enabled
         ready(false);
@@ -81,10 +95,10 @@ public class RandomGeneratorApplication {
         SpringApplication.run(RandomGeneratorApplication.class, args);
 	}
 
-
     // Dump out some information
     @EventListener(ApplicationReadyEvent.class)
-    public void dumpSysInfo() {
+    public void dumpInfo() throws IOException {
+
         Map info = getSysinfo();
 
         log.info("=== Max Heap Memory:  " + info.get("memory.max") + " MB");
@@ -162,6 +176,15 @@ public class RandomGeneratorApplication {
         return getSysinfo();
     }
 
+    /**
+     * Shutdown called by preStop hook in the Lifecycle Conformance pattern example
+     * Log and stop the Spring Boot container
+     */
+    @RequestMapping(value = "/shutdown")
+    public void shutdown() {
+        log.info("SHUTDOWN NOW");
+        SpringApplication.exit(applicationContext);
+    }
 
     // ================================================================================================
     // Burn down some CPU time, which can be used to increase the CPU load on
@@ -223,5 +246,31 @@ public class RandomGeneratorApplication {
         }
     }
 
+    // Check for a file which has supposedly be created as part of postStart Hook
+    private static void waitForPostStart() throws IOException, InterruptedException {
+        if ("true".equals(System.getenv("WAIT_FOR_POST_START"))) {
+            File postStartFile = new File("/postStart_done");
+            while (!postStartFile.exists()) {
+                log.info("Waiting for postStart to be finished ....");
+                Thread.sleep(10_000);
+            }
+            log.info("postStart Message: " + new String(Files.readAllBytes(postStartFile.toPath())));
+        } else {
+            log.info("No WAIT_FOR_POST_START configured");
+        }
+    }
 
+    // Simple shutdown hook to catch some signals. If you have another idea to catch a SIGTERM, please
+    // let us know by opening an issue in this repo or send in a pull request.
+    private static void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(
+            new Thread(
+                () -> log.info(">>>> SHUTDOWN HOOK called. Possibly because of a SIGTERM from Kubernetes")));
+    }
+
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
 }
