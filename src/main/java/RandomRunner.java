@@ -33,7 +33,9 @@ public class RandomRunner {
             System.exit(1);
         }
 
+        String file = args[0];
         int nrLines = Integer.parseInt(args[1]);
+
         long overallStart = System.nanoTime();
         System.out.println("Starting to create " + nrLines + " random numbers and store in " + args[0]);
         for (int i = 0; i < nrLines; i++) {
@@ -43,18 +45,23 @@ public class RandomRunner {
                                            .format(Instant.now());
             int randomValue = random.nextInt();
             String line = date + "," + id + "," + (System.nanoTime() - start) + "," + randomValue + "\n";
-            FileOutputStream out = new FileOutputStream(args[0], true);
-            try {
-                FileLock lock = out.getChannel().lock();
-                try {
-                    out.write(line.getBytes());
-                } finally {
-                    lock.release();
-                }
-            } finally {
-                out.close();
-            }
+
+            writeOutLineWithLockingFile(file, line);
         }
         System.out.println("Finished after " + ((System.nanoTime() - overallStart) / 1_000_000) + " ms");
+    }
+
+    private static void writeOutLineWithLockingFile(String file, String line) throws IOException {
+        FileOutputStream out = new FileOutputStream(file, true);
+        try {
+            FileLock lock = out.getChannel().lock();
+            try {
+                out.write(line.getBytes());
+            } finally {
+                lock.release();
+            }
+        } finally {
+            out.close();
+        }
     }
 }
