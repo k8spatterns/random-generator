@@ -61,7 +61,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     @Value("${pattern:None}")
     private String patternName;
 
-    // Used to allocate memory
+    // Used to allocate memory, testing resource limits
     private byte[] memoryHole;
 
     // Some logging
@@ -122,6 +122,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
      */
     @RequestMapping(value = "/", produces = "application/json")
     public Map getRandomNumber(@RequestParam(name = "burn", required = false) Long burn) throws IOException {
+        long start = System.nanoTime();
         Map<String, Object> ret = new HashMap<>();
 
         // Excercise the CPU a bit if requested
@@ -135,7 +136,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         ret.put("id", id.toString());
 
         // Write out the value to a file
-        logRandomValue(randomValue);
+        logRandomValue(randomValue, System.nanoTime() - start);
         return ret;
     }
 
@@ -198,12 +199,12 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     }
 
     // Write out the random value to a given path (if configured)
-    private void logRandomValue(int randomValue) throws IOException {
+    private void logRandomValue(int randomValue, long duration) throws IOException {
         if (logFile != null) {
             String date = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
                                            .withZone(ZoneOffset.UTC)
                                            .format(Instant.now());
-            String line = date + "," + id + "," + randomValue + "\n";
+            String line = date + "," + id + "," + duration + "," + randomValue + "\n";
             Files.write(Paths.get(logFile), line.getBytes(), CREATE, APPEND);
         }
     }
