@@ -110,6 +110,10 @@ mvn compile
 java -cp target/ RandomRunner /tmp/random_numbers.txt 100000
 ----
 
+This command is used in the _Batch Job_ and _Periodic Job_ pattern'' example.
+
 ### Building
 
 Refer to the [Image Builder](https://github.com/k8spatterns/examples/tree/master/advanced/ImageBuilder) pattern how this example is build from within a Kubernetes cluster.
+
+For creating a tag `2.0` just use the profile `-Pv2`. This is used for creating images to be used the _Declarative Deployment_ pattern.
