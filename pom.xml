@@ -23,7 +23,8 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.8</java.version>
     <app.version>${project.version}</app.version>
-    <docker.name>k8spatterns/random-generator:${app.version}</docker.name>
+    <image.repo>k8spatterns</image.user>
+    <docker.name>${image.repo}/random-generator:${app.version}</docker.name>
     <docker.verbose>true</docker.verbose>
   </properties>
 

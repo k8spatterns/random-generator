@@ -1,0 +1,115 @@
+## Random Number Generator Service
+
+This repository holds a sample REST service used in most of the https://github.com/k8spatterns/examples/[examples] for the book "Kubernetes Patterns" by https://github.com/bibryam[Bilgin Ibryam] and https://github.com/rhuss[Roland Huß].
+
+It's a very simple Spring Boot service with a handful of endpoints used to demonstrate Kubernetes concepts.
+
+You can start it locally with `./mvnw spring-boot:run` and get a random number:
+
+[source, bash]
+----
+curl -sL http://localhost:8080/ | jq .
+{
+  "random": 838265052,
+  "id": "58da4c5b-ba06-438e-84f8-1a30581baeb8"
+}
+----
+
+In order to create a Docker image, just use `mvn package docker:build`.
+You can easly change the Docker repository and push it to your own account with `-Dimage.repo`:
+
+[source, bash]
+----
+mvn -Dimage.repo="rhuss" package docker:build push
+----
+
+### Configuration
+
+[cols="1,1,5,2", options="header"]
+|===
+| Property | Env Var | Description | Pattern
+
+| version
+| ---
+| Version of this application, created during build
+| Declarative Deployment
+
+| log.file
+| LOG_FILE
+| Path to a log file. If set, the write out the generated response values into a CSV file
+| many
+
+| log.url
+| LOG_URL
+| If given, send out an HTTP request with the results of a random number generation
+| Ambassador
+
+| build.type
+| BUILD_TYPE
+| Add some informations about how the image has been built
+| Image Builder
+
+
+| pattern
+| PATTERN
+| Descriptive label used in environment variables
+| Envvar Configuration, Configuration Resource
+
+| seed
+| SEED
+| Seed number to initialize the random number generator. Must be a long.
+| Configuration Resource
+
+|===
+
+### Endpoints
+
+[cols="1,5,2", options="header"]
+|===
+| Endpoint | Description | Pattern
+
+| /
+| Return a random number and a unique id of this service
+| many
+
+| /info
+| Return information about configuration and system
+| many
+
+| /memory-eater
+| Allocate an array for eating up heap memory. Use parameter "mb" to specify the size in MegaByte
+| Predictable Demands
+
+| /toggle-live
+| Toggle the status of the Sprint Boot's actuator health check between `UP` and `DOWN`
+| Health Probe
+
+| /toggle-ready
+| Add or remove the local file which indicates readiness of this service
+| Health Probe
+
+| /shutdown
+| Shutdown the Spring Boot service
+| Managed Lifecycle
+
+| /logs
+| Return the content of the logs
+| Stateful Service, Init Container
+|===
+
+### Batch
+
+There is also a single class `RandomRunner` included which creates a list of random numbers into a file:
+
+[source, bash]
+----
+# Compile stuff first
+mvn compile
+
+# Create a file with 100000 lines in /tmp/random_numbers.txt
+java -cp target/ RandomRunner /tmp/random_numbers.txt 100000
+----
+
+### Building
+
+Refer to the [Image Builder](https://github.com/k8spatterns/examples/tree/master/advanced/ImageBuilder) pattern how this example is build from within a Kubernetes cluster.

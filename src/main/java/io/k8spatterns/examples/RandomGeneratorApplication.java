@@ -3,6 +3,9 @@ package io.k8spatterns.examples;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -27,9 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
-
 @SpringBootApplication
 @RestController
 public class RandomGeneratorApplication implements ApplicationContextAware  {
@@ -53,6 +53,10 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     @Value("${log.file:#{null}}")
     private String logFile;
 
+    // Optional url to log the data to(env: LOG_URL)
+    @Value("${log.url:#{null}}")
+    private String logUrl;
+
     // Build type (env: BUILD_TYPE)
     @Value("${build.type:#{null}}")
     private String buildType;
@@ -60,6 +64,10 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     // Pattern name where this service is used
     @Value("${pattern:None}")
     private String patternName;
+
+    // Seed to use for initializing the random number generator
+    @Value("${seed:0}")
+    private long seed;
 
     // Used to allocate memory, testing resource limits
     private byte[] memoryHole;
@@ -80,6 +88,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
 
     // ======================================================================
     public static void main(String[] args) throws InterruptedException, IOException {
+
         // Check for a postStart generated file and log if it found one
         waitForPostStart();
 
@@ -112,6 +121,14 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     @EventListener(ApplicationReadyEvent.class)
     public void createReadyFile() throws IOException {
         ready(true);
+    }
+
+    // Init seed if configured
+    @EventListener(ApplicationReadyEvent.class)
+    public void initSeed() {
+        if (seed != 0) {
+            random = new Random(seed);
+        }
     }
 
     /**
@@ -173,7 +190,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
      * @return overall information including version, and id
      */
     @RequestMapping(value = "/info", produces = "application/json")
-    public Map info() {
+    public Map info() throws IOException {
         return getSysinfo();
     }
 
@@ -187,6 +204,14 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         SpringApplication.exit(applicationContext);
     }
 
+    /**
+     * Get all log data that has been already written
+     */
+    @RequestMapping(value = "/logs", produces = "text/plain")
+    public String logs() throws IOException {
+        return getLog();
+    }
+
     // ================================================================================================
     // Burn down some CPU time, which can be used to increase the CPU load on
     // the system
@@ -198,16 +223,44 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         }
     }
 
-    // Write out the random value to a given path (if configured)
+    // Write out the random value to a given path (if configured) and/or an external URL
     private void logRandomValue(int randomValue, long duration) throws IOException {
         if (logFile != null) {
-            String date = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
-                                           .withZone(ZoneOffset.UTC)
-                                           .format(Instant.now());
-            String line = date + "," + id + "," + duration + "," + randomValue + "\n";
-            Files.write(Paths.get(logFile), line.getBytes(), CREATE, APPEND);
+            logToFile(logFile, randomValue, duration);
+        }
+
+        if (logUrl != null) {
+            logToUrl(new URL(logUrl), randomValue, duration);
         }
     }
+
+    private void logToFile(String file, int randomValue, long duration) throws IOException {
+        String date = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+                                       .withZone(ZoneOffset.UTC)
+                                       .format(Instant.now());
+        String line = date + "," + id + "," + duration + "," + randomValue + "\n";
+        IoUtils.appendLineWithLocking(file, line);
+    }
+
+    private void logToUrl(URL url, int randomValue, long duration) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		connection.setRequestMethod("POST");
+
+		String output = String.format(
+            "{ \"id\": \"%s\", \"random\": \"%d\", \"duration\": \"%d\" }",
+            id, randomValue, duration);
+
+		log.info("Sending log to " + url);
+		connection.setDoOutput(true);
+		OutputStream os = connection.getOutputStream();
+		os.write(output.getBytes());
+		os.flush();
+		os.close();
+
+		int responseCode = connection.getResponseCode();
+		log.info("Log delegate response: " + responseCode);
+    }
+
 
     // If the given environment variable is set, sleep a bit
     private static void delayIfRequested() throws InterruptedException {
@@ -217,11 +270,19 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         }
     }
 
+    // Get the content of the log file
+    private String getLog() throws IOException {
+        if (logFile == null) {
+            return "";
+        }
+        return String.join("\n", Files.readAllLines(Paths.get(logFile)));
+    }
+
     // Get some sysinfo
-    private Map getSysinfo() {
+    private Map getSysinfo() throws IOException {
         Map ret = new HashMap();
         Runtime rt = Runtime.getRuntime();
-        int mb = 1024 * 1024;
+        int mb = 1024  * 1024;
         ret.put("memory.max", rt.maxMemory() / mb);
         ret.put("memory.used", rt.totalMemory() / mb);
         ret.put("memory.free", rt.freeMemory() / mb);
@@ -229,12 +290,41 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         ret.put("id", id);
         ret.put("version", version);
         ret.put("pattern", patternName);
+        if (logFile != null) {
+            ret.put("logFile", logFile);
+        }
+        if (logUrl != null) {
+            ret.put("logUrl", logUrl);
+        }
+        if (seed != 0) {
+            ret.put("seed", seed);
+        }
         if (buildType != null) {
             ret.put("build-type", buildType);
         }
+
+        // From Downward API environment
+        Map<String, String> env = System.getenv();
+        for (String key : new String[] { "POD_IP", "NODE_NAME"}) {
+            if (env.containsKey(key)) {
+                ret.put(key, env.get(key));
+            }
+        }
+
+        // From Downward API mount
+        File podInfoDir = new File("/pod-info");
+        if (podInfoDir.exists() && podInfoDir.isDirectory()) {
+            for (String meta : new String[] { "labels", "annotations"}) {
+                File file = new File(podInfoDir, meta);
+                if (file.exists()) {
+                    byte[] encoded = Files.readAllBytes(file.toPath());
+                    ret.put(file.getName(), new String(encoded));
+                }
+            }
+        }
+
         return ret;
     }
-
 
     // Set the ready flag file
     static private void ready(boolean create) throws IOException {
