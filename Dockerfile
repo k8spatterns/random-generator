@@ -8,7 +8,7 @@ EXPOSE 8080
 # Fat jar are copied over. Ignore version number.
 COPY target/random-generator*jar /random-generator.jar
 
-# This runner is supposed to be runnable standalone in batch mode
+# This runner is supposed to be called with java RandomRunner for calling the batch mode
 COPY target/classes/RandomRunner.class /
 
 # Fire up Spring Boot's fat jar
