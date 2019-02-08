@@ -4,7 +4,7 @@ This repository holds a sample REST service used in most of the https://github.c
 
 It's a very simple Spring Boot service with a handful of endpoints used to demonstrate Kubernetes concepts.
 
-You can start it locally with `./mvnw spring-boot:run` and get a random number:
+You can start it locally with `./mvnw spring-boot:run` footnote:[Instead of the Maven wrapper `mvnw` you can also use a locally installed `mvn`] and get a random number:
 
 [source, bash]
 ----
@@ -15,12 +15,12 @@ curl -sL http://localhost:8080/ | jq .
 }
 ----
 
-In order to create a Docker image, just use `mvn package docker:build`.
+In order to create a Docker image, just use `./mvnw package docker:build`.
 You can easly change the Docker repository and push it to your own account with `-Dimage.repo`:
 
 [source, bash]
 ----
-mvn -Dimage.repo="rhuss" package docker:build push
+./mvnw -Dimage.repo="rhuss" package docker:build push
 ----
 
 ### Configuration
@@ -104,7 +104,7 @@ There is also a single class `RandomRunner` included which creates a list of ran
 [source, bash]
 ----
 # Compile stuff first
-mvn compile
+./mvnw compile
 
 # Create a file with 100000 lines in /tmp/random_numbers.txt
 java -cp target/ RandomRunner /tmp/random_numbers.txt 100000
