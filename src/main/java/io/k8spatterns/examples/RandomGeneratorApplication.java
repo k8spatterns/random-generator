@@ -120,7 +120,12 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     // Indicate, that our application is up and running
     @EventListener(ApplicationReadyEvent.class)
     public void createReadyFile() throws IOException {
-        ready(true);
+        try {
+            ready(true);
+        } catch (IOException exp) {
+            log.warn("Can't create 'ready' file " + READY_FILE +
+                     " used in readiness check. Possibly running locally, so ignoring it");
+        }
     }
 
     // Init seed if configured
