@@ -107,7 +107,7 @@ There is also a single class `RandomRunner` included which creates a list of ran
 ./mvnw compile
 
 # Create a file with 100000 lines in /tmp/random_numbers.txt
-java -cp target/ RandomRunner /tmp/random_numbers.txt 100000
+java -cp target/classes RandomRunner /tmp/random_numbers.txt 100000
 ----
 
 This command is used in the _Batch Job_ and _Periodic Job_ pattern'' example.
