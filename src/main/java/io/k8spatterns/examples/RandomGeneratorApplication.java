@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RandomGeneratorApplication implements ApplicationContextAware  {
 
     // File to indicate readiness
-    private static File READY_FILE = new File("/random-generator-ready");
+    private static File READY_FILE = new File("/tmp/random-generator-ready");
 
 	// Simples possible way to create a random number.
     // Could be replaced by access to a hardware number generator if
@@ -222,7 +222,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     // the system
     private void burnCpuTimeIfRequested(Long burn) {
         if (burn != null) {
-            for (int i = 0; i < (burn < 1_000 ? burn : 1_000) * 1_000 * 1_000; i++) {
+            for (int i = 0; i < (burn < 10_000 ? burn : 10_000) * 1_000 * 1_000; i++) {
                 random.nextInt();
             }
         }
@@ -327,6 +327,9 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
                 }
             }
         }
+
+        // Add environment
+        ret.put("env", System.getenv());
 
         return ret;
     }
