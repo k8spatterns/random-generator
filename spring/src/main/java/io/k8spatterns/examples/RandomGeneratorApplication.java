@@ -29,13 +29,14 @@ import org.springframework.context.event.EventListener;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import sun.misc.Signal;
 
 @SpringBootApplication
 @RestController
 public class RandomGeneratorApplication implements ApplicationContextAware  {
 
     // File to indicate readiness
-    private static File READY_FILE = new File("/tmp/random-generator-ready");
+    private static File READY_FILE = new File("/opt/random-generator-ready");
 
 	// Simples possible way to create a random number.
     // Could be replaced by access to a hardware number generator if
@@ -92,7 +93,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         // Check for a postStart generated file and log if it found one
         waitForPostStart();
 
-        // shutdownHook for dealing with signals
+        // shutdownHook & signalHandler for dealing with signals
         addShutdownHook();
 
         // Ensure that the ready flag is not enabled
@@ -119,7 +120,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
 
     // Indicate, that our application is up and running
     @EventListener(ApplicationReadyEvent.class)
-    public void createReadyFile() throws IOException {
+    public void createReadyFile() {
         try {
             ready(true);
         } catch (IOException exp) {
@@ -348,7 +349,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     // Check for a file which has supposedly be created as part of postStart Hook
     private static void waitForPostStart() throws IOException, InterruptedException {
         if ("true".equals(System.getenv("WAIT_FOR_POST_START"))) {
-            File postStartFile = new File("/postStart_done");
+            File postStartFile = new File("/opt/postStart-done");
             while (!postStartFile.exists()) {
                 log.info("Waiting for postStart to be finished ....");
                 Thread.sleep(10_000);
@@ -366,7 +367,6 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
             new Thread(
                 () -> log.info(">>>> SHUTDOWN HOOK called. Possibly because of a SIGTERM from Kubernetes")));
     }
-
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

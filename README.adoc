@@ -49,7 +49,6 @@ You can easly change the Docker repository and push it to your own account with 
 | Add some informations about how the image has been built
 | Image Builder
 
-
 | pattern
 | PATTERN
 | Descriptive label used in environment variables

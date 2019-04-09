@@ -1,11 +1,11 @@
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileLock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.UUID;
-
-import io.k8spatterns.examples.IoUtils;
 
 /**
  * Simple Batch runner for creating a certain amount of entries in a log
@@ -40,8 +40,22 @@ public class RandomRunner {
             int randomValue = random.nextInt();
             String line = date + "," + id + "," + (System.nanoTime() - start) + "," + randomValue + "\n";
 
-            IoUtils.appendLineWithLocking(file, line);
+            appendLineWithLocking(file, line);
         }
         System.out.println("Finished after " + ((System.nanoTime() - overallStart) / 1_000_000) + " ms");
+    }
+
+    private static void appendLineWithLocking(String file, String line) throws IOException {
+        FileOutputStream out = new FileOutputStream(file, true);
+        try {
+            FileLock lock = out.getChannel().lock();
+            try {
+                out.write(line.getBytes());
+            } finally {
+                lock.release();
+            }
+        } finally {
+            out.close();
+        }
     }
 }
