@@ -5,6 +5,9 @@ FROM openjdk:11
 # Port to access the random service
 EXPOSE 8080
 
+# Install dig for network checks
+RUN apt-get install -y dnsutils
+
 # Fat jar are copied over. Ignore version number.
 COPY target/random-generator*jar /opt/random-generator.jar
 
@@ -16,8 +19,11 @@ RUN chown -R 451900 /opt \
  && chgrp -R 0 /opt      \
  && chmod -R g=u /opt
 
-# Arbitrary user id
-USER 451900
+# Arbitrary user id. This does currently not work with every example.
+# We are trying to get this running, but especially in combination with
+# persitent volumes (like the _Stateful Service_ example), there are issues.
+# So we leave it better to user root for now.
+# USER 451900
 
 # Fire up Spring Boot's fat jar
 WORKDIR /opt
