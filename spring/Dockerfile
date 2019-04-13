@@ -6,7 +6,9 @@ FROM openjdk:11
 EXPOSE 8080
 
 # Install dig for network checks
-RUN apt-get install -y dnsutils
+RUN apt-get update \
+ && apt-get install -y dnsutils \
+ && apt-get clean
 
 # Fat jar are copied over. Ignore version number.
 COPY target/random-generator*jar /opt/random-generator.jar
