@@ -15,7 +15,7 @@ curl -sL http://localhost:8080/ | jq .
 }
 ----
 
-In order to create a Docker image, just use `./mvnw package docker:build`.
+In order to create a Docker image, just use `./mvnw -pl spring package docker:build`.
 You can easly change the Docker repository and push it to your own account with `-Dimage.repo`:
 
 [source, bash]
@@ -103,13 +103,13 @@ There is also a single class `RandomRunner` included which creates a list of ran
 [source, bash]
 ----
 # Compile stuff first
-./mvnw compile
+./mvnw -pl spring compile
 
 # Create a file with 100000 lines in /tmp/random_numbers.txt
 java -cp target/classes RandomRunner /tmp/random_numbers.txt 100000
 ----
 
-This command is used in the _Batch Job_ and _Periodic Job_ pattern'' example.
+This command is used in the _Batch Job_ and _Periodic Job_ pattern example.
 
 ### Building
 
