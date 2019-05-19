@@ -7,7 +7,7 @@ EXPOSE 8080
 
 # Install dig for network checks
 RUN apt-get update \
- && apt-get install -y dnsutils \
+ && apt-get install -y dnsutils jq \
  && apt-get clean
 
 # Fat jar are copied over. Ignore version number.

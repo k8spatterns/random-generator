@@ -1,3 +1,8 @@
 # Overall version
 version: @image.tag@
 
+# Always show details for the health checks
+management:
+ endpoint:
+   health:
+     show-details: always
