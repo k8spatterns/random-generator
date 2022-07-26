@@ -148,7 +148,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         long start = System.nanoTime();
         Map<String, Object> ret = new HashMap<>();
 
-        // Excercise the CPU a bit if requested
+        // Exercise the CPU a bit if requested
         burnCpuTimeIfRequested(burn);
 
         // The very random number.
