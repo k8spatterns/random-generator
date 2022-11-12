@@ -66,6 +66,10 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     @Value("${pattern:None}")
     private String patternName;
 
+    // Another env var for the pattern name
+    @Value("${random_pattern:None}")
+    private String randomPatternName;
+
     // Seed to use for initializing the random number generator
     @Value("${seed:0}")
     private long seed;
@@ -295,7 +299,8 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         ret.put("cpu.procs", rt.availableProcessors());
         ret.put("id", id);
         ret.put("version", version);
-        ret.put("pattern", patternName);
+        ret.put("pattern", !"None".equals(randomPatternName) ? randomPatternName : patternName);
+
         if (logFile != null) {
             ret.put("logFile", logFile);
         }
