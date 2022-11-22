@@ -5,6 +5,7 @@ FROM adoptopenjdk/maven-openjdk11 as BUILD
 COPY ./ /opt/random-generator/
 WORKDIR /opt/random-generator
 # Build jar files
+RUN ls -ltr .
 RUN mvn install -f spring/pom.xml
 
 # --------------------------------
