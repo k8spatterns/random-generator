@@ -2,17 +2,17 @@
 FROM adoptopenjdk/maven-openjdk11 as BUILD
 
 # Copy over source into the container
-COPY spring /opt/random-generator
+COPY . /opt/random-generator
 WORKDIR /opt/random-generator
 # Build jar files
-RUN mvn install
+RUN ./mvnw install -f spring/pom.xml
 
 # --------------------------------
 # Runtime image
 FROM openjdk
 # Copy over artefacts
-COPY --from=BUILD /opt/random-generator/target/random-generator*jar /opt/random-generator.jar
-COPY --from=BUILD /opt/random-generator/target/classes/RandomRunner.class /opt
+COPY --from=BUILD /opt/random-generator/spring/target/random-generator*jar /opt/random-generator.jar
+COPY --from=BUILD /opt/random-generator/spring/target/classes/RandomRunner.class /opt
 
 # Setup env
 WORKDIR /opt
