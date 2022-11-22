@@ -2,10 +2,12 @@
 FROM adoptopenjdk/maven-openjdk11 as BUILD
 
 # Copy over source into the container
-COPY * /opt/random-generator/
+COPY spring /opt/random-generator/spring
+COPY pom.xml /opt/random-generator
+
 WORKDIR /opt/random-generator
 # Build jar files
-RUN ls -ltr .
+RUN ls -l
 RUN mvn install -f spring/pom.xml
 
 # --------------------------------
