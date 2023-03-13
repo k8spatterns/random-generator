@@ -8,7 +8,7 @@
 
   <description>Random Generator :: Spring</description>
   <properties>
-    <version.spring-boot>2.1.4.RELEASE</version.spring-boot>
+    <version.spring-boot>2.7.9</version.spring-boot>
     <image.tag.extension>-spring</image.tag.extension>
   </properties>
 
@@ -45,16 +45,16 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${version.spring-boot}</version>
         <executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
+		  <execution>
+			<goals>
+			  <goal>repackage</goal>
+			</goals>
+		  </execution>
+		</executions>
       </plugin>
 
       <plugin>
-				<groupId>io.fabric8</groupId>
+		<groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
         <version>${version.docker-maven-plugin}</version>
         <configuration>

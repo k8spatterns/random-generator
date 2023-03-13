@@ -20,7 +20,7 @@
     <image.tag.extension/>
     <docker.name>${image.repo}/random-generator:${image.tag}${image.tag.extension}</docker.name>
     <docker.verbose>true</docker.verbose>
-    <version.docker-maven-plugin>0.40.1</version.docker-maven-plugin>
+    <version.docker-maven-plugin>0.42.0</version.docker-maven-plugin>
   </properties>
 
   <modules>
@@ -31,7 +31,6 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.2</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>

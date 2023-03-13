@@ -7,13 +7,13 @@ COPY pom.xml /opt/random-generator
 
 WORKDIR /opt/random-generator
 # Build jar files
-RUN ls -l
 RUN mvn install -f spring/pom.xml
 
 # --------------------------------
 # Runtime image
 FROM openjdk
-# Copy over artefacts
+
+# Copy over artifacts
 COPY --from=BUILD /opt/random-generator/spring/target/random-generator*jar /opt/random-generator.jar
 COPY --from=BUILD /opt/random-generator/spring/target/classes/RandomRunner.class /opt
 
