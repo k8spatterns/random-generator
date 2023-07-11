@@ -35,8 +35,11 @@ import sun.misc.Signal;
 @RestController
 public class RandomGeneratorApplication implements ApplicationContextAware  {
 
+    // Writable directory for printing out log files and marker filers
+    private static File WRITE_DIR = new File("/tmp");
+
     // File to indicate readiness
-    private static File READY_FILE = new File("/opt/random-generator-ready");
+    private static File READY_FILE = new File(WRITE_DIR,"random-generator-ready");
 
 	// Simples possible way to create a random number.
     // Could be replaced by access to a hardware number generator if
@@ -161,6 +164,10 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
         // Create return value
         ret.put("random", randomValue);
         ret.put("id", id.toString());
+        ret.put("version", version);
+        if (patternName != null && !"None".equalsIgnoreCase(patternName)) {
+            ret.put("pattern", patternName);
+        }
 
         // Write out the value to a file
         logRandomValue(randomValue, System.nanoTime() - start);
@@ -217,7 +224,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     /**
      * Get all log data that has been already written
      */
-    @RequestMapping(value = "/logs", produces = "text/plain")
+    @RequestMapping(value = "/tmp/logs", produces = "text/plain")
     public String logs() throws IOException {
         return getLog();
     }
@@ -354,7 +361,7 @@ public class RandomGeneratorApplication implements ApplicationContextAware  {
     // Check for a file which has supposedly be created as part of postStart Hook
     private static void waitForPostStart() throws IOException, InterruptedException {
         if ("true".equals(System.getenv("WAIT_FOR_POST_START"))) {
-            File postStartFile = new File("/opt/postStart-done");
+            File postStartFile = new File(WRITE_DIR, "postStart-done");
             while (!postStartFile.exists()) {
                 log.info("Waiting for postStart to be finished ....");
                 Thread.sleep(10_000);

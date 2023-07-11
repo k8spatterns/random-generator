@@ -120,3 +120,14 @@ The last example is used in _Daemon Service_ pattern example.
 Refer to the _Image Builder_ pattern how this example is build from within a Kubernetes cluster.
 
 For creating a tag `2.0` just use the profile `-Pv2`. This is used for creating images to be used the _Declarative Deployment_ pattern.
+
+### Crossbuild the images
+
+In order to compile the images for multiple architectures, use:
+
+[source, bash]
+----
+docker buildx create --use
+docker buildx build --build-arg VERSION="v1" --platform linux/arm64/v8,linux/amd64 -t k8spatterns/random-generator:1.0 .
+docker buildx build --build-arg VERSION="v2" --platform linux/arm64/v8,linux/amd64 -t k8spatterns/random-generator:2.0 .
+----

@@ -15,28 +15,33 @@ import java.util.concurrent.TimeUnit;
 public class RandomRunner {
 
     // Simples possible way to create a random number.
-    private static final Random random = new Random();
+    private static Random random = new Random();
 
     // Simple UUID to identify this server instance
     private static final UUID id = UUID.randomUUID();
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 2 && args.length != 3) {
+        if (args.length > 5) {
             System.err.println("Usage: java -jar ... " +
                                RandomRunner.class.getCanonicalName() +
-                               " path-to-file number-lines-to-create [seconds-to-sleep]");
+                               " [--seed <nr>] [path-to-file] [number-lines-to-create] [seconds-to-sleep]");
             System.exit(1);
         }
-
-        String file = args[0];
-        int nrLines = Integer.parseInt(args[1]);
+        int idx = 0;
+        if (idx < args.length && "--seed".equalsIgnoreCase(args[idx])) {
+            long seed = Long.parseLong(args[++idx]);
+            random = new Random(seed);
+            idx++;
+        }
+        String file = idx < args.length ? args[idx++] : "-";
+        int nrLines = Integer.parseInt(idx < args.length ? args[idx++] : "10000");
         int sleep = 0;
-        if (args.length == 3) {
-            sleep = Integer.parseInt(args[2]);
+        if (idx < args.length) {
+            sleep = Integer.parseInt(args[idx]);
         }
         while (true) {
             long overallStart = System.nanoTime();
-            System.out.println("Starting to create " + nrLines + " random numbers and store in " + args[0]);
+            System.out.println("Starting to create " + nrLines + " random numbers");
             for (int i = 0; i < nrLines; i++) {
                 long start = System.nanoTime();
                 String date = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
@@ -52,7 +57,7 @@ public class RandomRunner {
                 return;
             }
             try {
-                TimeUnit.SECONDS.sleep(30);
+                TimeUnit.SECONDS.sleep(sleep);
             } catch (InterruptedException e) {
                 System.out.println("Thread interrupted, exiting");
                 System.exit(1);
@@ -61,6 +66,10 @@ public class RandomRunner {
     }
 
     private static void appendLineWithLocking(String file, String line) throws IOException {
+        if ("-".equalsIgnoreCase(file)) {
+            System.out.print(line);
+            return;
+        }
         try (FileOutputStream out = new FileOutputStream(file, true)) {
             FileLock lock = out.getChannel().lock();
             try {

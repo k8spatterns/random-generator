@@ -30,6 +30,10 @@ public class HealthToggleIndicator implements HealthIndicator {
         this.healthy = !this.healthy;
     }
 
+    public void setHealthy(boolean healthy) {
+        this.healthy = healthy;
+    }
+
     public static String format(long v) {
         if (v < 1024) return v + " B";
         int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
